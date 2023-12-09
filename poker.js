@@ -241,15 +241,15 @@ function checkOnePair() {
 
 function checkStraightFlush() { 
     // var duplicates = checkDuplicate();
-    var isStraight = checkStraight()
-    var low_ace = isStraight.lowace
-    var str_data = isStraight.each
-    var isFlush = checkFlush()
-    var str_flsh = []
-    var i_loop = []
+    var isStraight = checkStraight();
+    var low_ace = isStraight.lowace;
+    var str_data = isStraight.each;
+    var isFlush = checkFlush();
+    var str_flsh = [];
+    var i_loop = [];
     var result_data = [];
-    var each_res = []
-    var check_suit = ''
+    var each_res = [];
+    var check_suit = '';
 
     if(isStraight && isStraight.result && isFlush && isFlush.result ) {
 
