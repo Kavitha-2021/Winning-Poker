@@ -2,13 +2,13 @@ var card = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14];
 var suit = ['h', 's', 'd', 'c'] //❤🔶☘💲
 
 var array_cards = [
-    {rank: 3, suit:'c'},
-    {rank: 8, suit:'d'},
-    {rank: 5, suit:'c'},
-    {rank: 5, suit:'c'},
-    {rank: 6, suit:'d'},
-    {rank: 2, suit:'d'},
-    {rank: 7, suit:'c'}
+    {rank: 13, suit:'s'},
+    {rank: 13, suit:'h'},
+    {rank: 4, suit:'d'},
+    {rank: 10, suit:'h'},
+    {rank: 5, suit:'s'},
+    {rank: 2, suit:'d', user: true},
+    {rank: 8, suit:'c', user: true}
 ]
 
 function checkFlush() {
@@ -108,13 +108,14 @@ function checkStraight() {
         arr_straight[i+3] == arr_straight[i]+3 && arr_straight[i+4] == arr_straight[i]+4) {
             each_index[i] = [arr_straight[i], arr_straight[i+1], arr_straight[i+2], arr_straight[i+3], arr_straight[i+4]]
             each_flag[i] = true
-        } else each_flag[i] = false
+        } else {each_index[i] = [0];each_flag[i] = false}
     }
 
     if(each_flag.includes(true)) {
         each_index.forEach((e, i) => {
             result_data[i] = e.reduce((p_sum, a) => p_sum + a, 0)
         })
+        console.log(result_data)
         return {result: true, data: Math.max(...result_data), each: each_index, lowace: false}
     } else if(arr_straight.includes(14) && arr_straight.includes(2) && arr_straight.includes(3) &&
     arr_straight.includes(4) && arr_straight.includes(5) && !arr_straight.includes(6)) {
@@ -157,7 +158,9 @@ function checkFourKind() {
 
 function checkFullHouse() {
     var duplicates = checkDuplicate();
-    var result_data = [];
+    // var result_data = [];
+    var three = []
+    var two = [];
     
     var fullhouse = Object.values(duplicates)
 
@@ -165,10 +168,22 @@ function checkFullHouse() {
         // console.log('Full house')
         for(const property in duplicates) {
             if(duplicates[property] == 3) {
-                result_data.push(property)
+                three.push(property)
+            }
+
+            if(duplicates[property] == 2) {
+                two.push(property)
             }
         }
-        return { result: true, data: Math.max(...result_data)}
+        console.log(three, two)
+        return { result: true, data: { 'three': Math.max(...three), 'two': Math.max(...two)}}
+        // return { result: true, data: Math.max(...result_data)}
+    } else if(fullhouse.includes(3)) {
+        var threepair = fullhouse.filter(e => e == 3)
+        if(threepair.length >= 2) {
+            var threekeys = Object.keys(duplicates).filter(key => duplicates[key] == 3).map(e => parseInt(e))
+            return {result: true, data: { 'three': Math.max(...threekeys), 'two': Math.min(...threekeys)}}
+        } else return { result: false, data: 0}
     } else return { result: false, data: 0}
 }
 
@@ -197,10 +212,11 @@ function checkTwoPair () {
     var twopair_len = twopair.filter(e => e == 2)
 
     if(twopair_len.length >= 2 && !twopair.includes(3)) {
-        result_data = Object.keys(duplicates).find(key => duplicates[key] == 2)
+        result_data = Object.keys(duplicates).filter(key => duplicates[key] == 2).map(e => parseInt(e) )
         // for(const property in duplicates) {
         //     result_data += parseInt(property)
         // }
+        // result_data.forEach(e => parseInt(e))
         return { result: true, data: result_data}
     } else return { result: false, data: result_data}
 }
@@ -232,6 +248,7 @@ function checkStraightFlush() {
     var str_flsh = []
     var i_loop = []
     var result_data = [];
+    var each_res = []
     var check_suit = ''
 
     if(isStraight && isStraight.result && isFlush && isFlush.result ) {
@@ -261,24 +278,31 @@ function checkStraightFlush() {
             }else return {result: false, data: 0}
             
         } else {
+
             for(var i = 0; i < str_data.length; i++) {
-                var each_res = []
-                var filter = str_flsh.filter(e => e.rank == str_data[i][0])
-                if(filter && filter.length == 1) 
-                check_suit = filter[0].suit
+                each_res[i]= []
                 
+                str_data[i].forEach((e, j) => {
+                    var filter = str_flsh.filter(e => e.rank == str_data[i][j])
+                    if(filter && filter.length == 1) 
+                    check_suit = filter[0].suit
+                })
+
                 for(var j = 0; j < str_data[i].length; j++) {
                     var res = str_flsh.filter(e => e.rank == str_data[i][j] && e.suit == check_suit)
                     if(res.length > 0)
-                    each_res.push(res)
+                    each_res[i].push(res)
 
-                    if(each_res.length >= 5)
+                    if(each_res[i].length >= 5)
                     i_loop.push(true)
 
                 }
 
-                if(each_res.length >=5 && i == str_data.length - 1)
-                each_res.forEach(e => { result_data.push(e[0].rank) })
+                if(each_res[i].length >=5 && i <= str_data.length - 1) {
+                    var finalarr = []
+                    each_res[i].forEach(e => { finalarr.push(e[0].rank)})
+                    result_data = finalarr
+                }
             }
             if(i_loop.includes(true)) {
                 // console.log('Its a Straight Flush')
@@ -288,47 +312,137 @@ function checkStraightFlush() {
     } else return {result: false, data: 0}  
 }
 
-function checkRank() {
-    var isRoyalFlush = checkRoyalFlush()
+function evalHighCard() {
+    var ranks = []
+    array_cards.forEach(e => {
+        if(e.user)
+        ranks.push(e.rank)
+    })
+    return Math.max(...ranks)
+}
+
+function checkRank() {var isRoyalFlush = checkRoyalFlush()
     if(isRoyalFlush && isRoyalFlush.result)  
-        return 'Its a Royal Flush with the sum of'+isRoyalFlush.data
+    return {
+        message: 'Its a Royal Flush with the sum of'+isRoyalFlush.data,
+        cards: [],
+        sum: isRoyalFlush.data,
+        rank: 1
+    }
 
     var isStraightFlush = checkStraightFlush()
     if(isStraightFlush && isStraightFlush.result) 
-        return 'Its a Straight Flush with the sum of '+isStraightFlush.data
+    return {
+        message: 'Its a Straight Flush with the sum of '+isStraightFlush.data,
+        cards: [],
+        sum: isStraightFlush.data,
+        rank: 2
+    }
 
     var isFourKind = checkFourKind()
     if(isFourKind.result) 
-        return 'Its Four of a Kind Card no. '+isFourKind.data
+    return {
+        message: 'Its Four of a Kind Card no. '+isFourKind.data,
+        cards: [isFourKind.data],
+        sum: isFourKind.data * 4,
+        rank: 3
+    }
 
     var isFullHouse = checkFullHouse()
     if(isFullHouse.result) 
-        return 'Its FullHouse with '+isFullHouse.data+' as Three pair Card'
+    return {
+        message: 'Its FullHouse with '+isFullHouse.data.three+' as Three pair Card and '+isFullHouse.data.two+' as two pair card',
+        cards: [isFullHouse.data.three, isFullHouse.data.two],
+        sum: isFullHouse.data.three + isFullHouse.data.two,
+        rank: 4
+    }
 
     var isFlush = checkFlush()
     if(isFlush && isFlush.result) 
-        return 'Its Flush '+isFlush.data
+    return {
+        message: 'Its Flush '+isFlush.data,
+        cards: [],
+        sum: isFlush.data,
+        rank: 5
+    }
 
     var isStraight = checkStraight()
     if(isStraight && isStraight.result ) 
-        return 'Its a Straight with the sum of'+isStraight.data
+    return {
+        message: 'Its a Straight with the sum of'+isStraight.data,
+        cards: [],
+        sum: isStraight.data,
+        rank: 6
+    }
 
     var isThreeKind = checkThreeKind()
     if(isThreeKind.result) 
-        return 'Its Three of a kind Card no. '+isThreeKind.data
+        return {
+            message: 'Its Three of a kind Card no. '+isThreeKind.data,
+            cards: [isThreeKind.data],
+            sum: isThreeKind.data * 3,
+            rank: 7
+        }
 
     var isTwoPair = checkTwoPair()
     if(isTwoPair.result) 
-        return 'Its Two Pair Card no.'+isTwoPair.data
+    return {
+        message: 'Its Two Pair Card no.'+isTwoPair.data, 
+        cards: isTwoPair.data,
+        sum: isTwoPair.data.reduce((total, currentval ) => total + currentval*2 , 0),
+        rank: 8
+    }
     
     var isOnePair = checkOnePair()
     if(isOnePair.result) 
-        return 'Its One Pair Card no. '+isOnePair.data
+        return {
+            message: 'Its One Pair Card no. '+isOnePair.data,
+            cards: isOnePair.data,
+            sum: isOnePair.data * 2,
+            rank: 9
+        }
 
-    // return 'High Card'
+    var highCard = evalHighCard()
+    return {
+        message: 'High Card '+highCard,
+        cards: highCard,
+        sum: highCard,
+        rank: 10
+    }
 }
 
-console.log(checkRank())
+var result = [
+    { name: 'Guest1734', rank: 3, sum: 43, cards: [ 3 ] },
+    { name: 'Guest1404', rank: 3, sum: 43, cards: [ 3, 9 ] },
+    { name: 'Guest1609', rank: 6, sum: 35, cards: [ 3, 9, 14 ] }
+]
+
+function evaluateRank() {
+    var firstplace = result.reduce((prev, curr) => {
+        return curr.rank < prev.rank ? curr : prev
+    })
+
+    var first_player = result.filter(
+      (e) => e.rank == firstplace.rank
+    );
+    if (first_player.length == 1) {
+        return first_player
+    //   io.sockets.in(rooms[index].roomId).emit("winner", first_player);
+    } else if (first_player.length > 1) {
+      var fsum = first_player.reduce((prev, curr) => {
+        return curr.sum > prev.sum ? curr : prev;
+      });
+      var sum_player = first_player.filter((e) => e.sum == fsum.sum);
+      if (sum_player.length >= 1) {
+        // return sum_player
+        // io.sockets.in(rooms[index].roomId).emit("winner", sum_player);
+    //   } else if (sum_player.length > 1) {
+        return sum_player
+      }
+    }
+}
+console.log(evaluateRank())
+// console.log(checkRank())
 
 // console.log(checkStraightFlush());
 // console.log(checkStraight())
