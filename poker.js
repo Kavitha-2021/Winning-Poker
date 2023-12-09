@@ -9,7 +9,7 @@ var array_cards = [
     {rank: 5, suit:'s'},
     {rank: 2, suit:'d', user: true},
     {rank: 8, suit:'c', user: true}
-]
+];
 
 function checkFlush() {
     var array_cards_suit = []; 
